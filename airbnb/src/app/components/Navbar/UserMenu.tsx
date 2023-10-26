@@ -22,6 +22,16 @@ export default function UserMenu({ currentUser }: UserMenuProps) {
         setIsOpen((prev) => !prev);
     }, []);
 
+    function onClickLogin() {
+        setIsOpen(false);
+        loginModal.onOpen();
+    }
+
+    function onClickSignup() {
+        setIsOpen(false);
+        registerModal.onOpen();
+    }
+
     return (
         <div className="relative">
             <div className=" flex flex-row items-center gap-3">
@@ -72,12 +82,9 @@ export default function UserMenu({ currentUser }: UserMenuProps) {
                             </>
                         ) : (
                             <>
+                                <MenuItem onClick={onClickLogin} text="Login" />
                                 <MenuItem
-                                    onClick={loginModal.onOpen}
-                                    text="Login"
-                                />
-                                <MenuItem
-                                    onClick={registerModal.onOpen}
+                                    onClick={onClickSignup}
                                     text="Sign up"
                                 />
                             </>
