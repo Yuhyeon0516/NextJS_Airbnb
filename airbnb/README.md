@@ -144,6 +144,8 @@ export default function RootLayout({
     }
     ```
 
+-   참조 링크 : https://nextjs.org/docs/messages/react-hydration-error
+
 ## 외부 라이브러리 client component로 변경하기
 
 기존에 React에서 사용하던 라이브러리를 받아서 사용하려면 전부 client component롤 변경하여야 사용이 가능하다.<br>
@@ -160,3 +162,119 @@ export default function ToasterProvider() {
     return <Toaster />;
 }
 ```
+
+## Prisma
+
+Prisma란 JS와 TS에서 DB와 상호 작용하는 ORM(Object-Relational Mapping)도구
+
+-   사용법
+
+    1. npm i -D prisma
+    2. npx prisma init
+       -> /prisma/schema.prisma와 .env가 생성됨
+    3. 최초에는 postgresql이 기본 DB로 설정이 되어있으나 사용하는 DB에 따라 schema.prisma에서 바꿔주면됨(이번 프로젝트에는 mongodb를 사용해볼 예정)
+
+        - 최초
+
+        ```Javascript
+        // This is your Prisma schema file,
+        // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+        generator client {
+            provider = "prisma-client-js"
+        }
+
+        datasource db {
+            provider = "postgresql"
+            url      = env("DATABASE_URL")
+        }
+        ```
+
+        - 변경 후
+
+        ```Javascript
+        // This is your Prisma schema file,
+        // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+        generator client {
+            provider = "prisma-client-js"
+        }
+
+        datasource db {
+            provider = "mongodb"
+            url      = env("DATABASE_URL")
+        }
+        ```
+
+    4. DB의 URL을 .env DATABASE_URL에 넣어주기
+    5. schema.prisma에서 DB Model을 정의해주기
+
+        ```prisma
+        model User {
+            id String @id @default(auto()) @map("_id") @db.ObjectId
+            name String?
+            email String? @unique
+            emailVerified DateTime?
+            image String?
+            hashedPassword String?
+            createdAt DateTime @default(now())
+            updatedAt DateTime @updatedAt
+            favoriteIds String[] @db.ObjectId
+
+            accounts Account[]
+            listings Listing[]
+            reservations Reservation[]
+        }
+
+        model Account {
+            id String @id @default(auto()) @map("_id") @db.ObjectId
+            userId String @db.ObjectId
+            type String
+            provider String
+            providerAccountId String
+            refresh_token String? @db.String
+            access_token String? @db.String
+            expires_at Int?
+            token_type String?
+            scope String?
+            id_token String? @db.String
+            session_state String?
+
+            user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+            @@unique([provider, providerAccountId])
+        }
+
+        model Listing {
+            id String @id @default(auto()) @map("_id") @db.ObjectId
+            title String
+            description String
+            imageSrc String
+            createdAt DateTime @default(now())
+            category String
+            roomCount Int
+            bathroomCount Int
+            guestCount Int
+            locationValue String
+            userId String @db.ObjectId
+            price Int
+
+            user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+            reservations Reservation[]
+        }
+
+        model Reservation {
+            id String @id @default(auto()) @map("_id") @db.ObjectId
+            userId String @db.ObjectId
+            listingId String @db.ObjectId
+            startDate DateTime
+            endDate DateTime
+            totalPrice Int
+            createdAt DateTime @default(now())
+
+            user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+            listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+        }
+        ```
+
+    6. npx prisma db push 명령어 실행
