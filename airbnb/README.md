@@ -280,4 +280,114 @@ Prisma란 JS와 TS에서 DB와 상호 작용하는 ORM(Object-Relational Mapping
     6. npx prisma db push 명령어 실행
     7. DB에 해당 모델에 대한 정보가 잘 업로드 되었는지 확인
 
+## Prisma DB 설정
+
+Next앱은 개발환경에서 항상 hot reload하려고 준비한다.<br>
+그러면 그럴때마다 client를 호출하게 될 것이고 이 후 PrismaClient가 지속적으로 생성되고, 이러한 상황에서는 db 연결에 한계가 생기게된다.<br>
+
+```typescript
+import { PrismaClient } from "@prisma/client";
+
+declare global {
+    var prisma: PrismaClient | undefined;
+}
+
+const client = globalThis.prisma || new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") globalThis.prisma = client;
+
+export default client;
+```
+
+위와 같이 client는 global object에 저장된 prisma와 client는 같다고 명시를 해주고, 만약 global에 prisma가 없다면 New PrismaClient를 생성하라고 설정해준다.<br>
+이렇게 하면 개발 환경에서는 최초 1회만 PrismaClient를 생성하게 되고 제품화 했을때는 hot reload와 연관 없으니 최초 배포 시 1회만 PrismaClient가 생성되게된다.
+
 ## Next-Auth
+
+Next-Auth는 Next에서 Auth관련된 사항들을 관리를 해주는 라이브러리이다.<br>
+일단 설정 방법으로는 Next13부터 app router로 변경되면서 app/api/auth/[...nextauth]/route.ts에 기본 설정을 하면된다.<br>
+아래와 같이 adapter, provider 등 authOptions에 정의를 해주고, as Method와 함께 export 해주면된다.<br>
+
+```typescript
+import client from "@/app/libs/prismadb";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import NextAuth, { AuthOptions } from "next-auth";
+import GithubProvider from "next-auth/providers/github";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcrypt";
+import prisma from "@/app/libs/prismadb";
+
+export const authOptions: AuthOptions = {
+    adapter: PrismaAdapter(client),
+    providers: [
+        GithubProvider({
+            clientId: process.env.GITHUB_ID as string,
+            clientSecret: process.env.GITHUB_SECRET as string,
+        }),
+        GoogleProvider({
+            clientId: process.env.GOOGLE_ID as string,
+            clientSecret: process.env.GOOGLE_SECRET as string,
+        }),
+        CredentialsProvider({
+            name: "credentials",
+            credentials: {
+                email: { label: "email", type: "text" },
+                password: { label: "password", type: "password" },
+            },
+            authorize: async function (credentials) {
+                if (!credentials?.email || !credentials.password) {
+                    throw new Error("Invalide credentials");
+                }
+
+                const user = await prisma.user.findUnique({
+                    where: {
+                        email: credentials.email,
+                    },
+                });
+
+                if (!user || !user.hashedPassword) {
+                    throw new Error("Invalide credentials");
+                }
+
+                const isCorrectPassword = await bcrypt.compare(
+                    credentials.password,
+                    user.hashedPassword
+                );
+
+                if (!isCorrectPassword) {
+                    throw new Error("Invalide credentials");
+                }
+
+                return user;
+            },
+        }),
+    ],
+    pages: {
+        signIn: "/",
+    },
+    debug: process.env.NODE_ENV === "development",
+    session: {
+        strategy: "jwt",
+    },
+    secret: process.env.NEXTAUTH_SECRET,
+};
+
+const authHandler = NextAuth(authOptions);
+
+export { authHandler as GET, authHandler as POST };
+```
+
+추가로 다른 HTTP Request/Response를 구성하고 싶을땐 api 폴더 하위에 설정하면된다.<br>
+현재 프로젝트 api/register 처럼 함수의 이름을 원하는 Method로 정의하여 구현하면된다.<br>
+만약 입력된 email에 맞춰 user를 찾고싶으면 prisma를 이용하여 아래와 같이 findUnique로 찾을 수 있다.<br>
+
+```typescript
+import prisma from "@/app/libs/prismadb";
+
+const currentUser = await prisma.user.findUnique({
+    where: {
+        email: session.user.email as string,
+    },
+});
+```
