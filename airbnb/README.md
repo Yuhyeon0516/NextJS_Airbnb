@@ -1,6 +1,6 @@
 # Airbnb clone
 
-Airbnb를 clone해보면서 배우점들을 적어놓을 예정입니다.
+Airbnb를 clone해보면서 배운점들을 적어놓을 예정입니다.
 
 # Next에서 font 적용
 
