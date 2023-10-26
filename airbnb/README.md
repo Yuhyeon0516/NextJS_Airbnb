@@ -278,3 +278,6 @@ Prisma란 JS와 TS에서 DB와 상호 작용하는 ORM(Object-Relational Mapping
         ```
 
     6. npx prisma db push 명령어 실행
+    7. DB에 해당 모델에 대한 정보가 잘 업로드 되었는지 확인
+
+## Next-Auth
