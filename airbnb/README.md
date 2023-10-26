@@ -143,3 +143,20 @@ export default function RootLayout({
         );
     }
     ```
+
+## 외부 라이브러리 client component로 변경하기
+
+기존에 React에서 사용하던 라이브러리를 받아서 사용하려면 전부 client component롤 변경하여야 사용이 가능하다.<br>
+왜냐하면 해당 라이브러리에 해당 함수가 React hook(useState, useEffect) 등을 사용하고 있으면 server component에서 사용이 불가하기 때문이다.<br>
+변경하는 방법은 사용하고 싶은 라이브러리에서 import로 불러와서 client component로 정의해주고 다시 return 해주는 방식이다.<br>
+아래에 react-hot-toast 라이브러리를 예시로 ToasterProvider라는 이름으로 client component로 변경해 보았다.<br>
+
+```Javascript
+"use client";
+
+import { Toaster } from "react-hot-toast";
+
+export default function ToasterProvider() {
+    return <Toaster />;
+}
+```
