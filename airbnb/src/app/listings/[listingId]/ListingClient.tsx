@@ -96,7 +96,7 @@ export default function ListingClient({
             );
 
             if (dayCount && listing.price) {
-                setTotalPrice((dayCount + 1) * listing.price);
+                setTotalPrice(dayCount * listing.price);
             } else {
                 setTotalPrice(listing.price);
             }
