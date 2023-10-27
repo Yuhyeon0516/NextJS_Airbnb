@@ -391,3 +391,19 @@ const currentUser = await prisma.user.findUnique({
     },
 });
 ```
+
+## Dynamic import
+
+Next는 ES2020의 dynamic import 문법을 지원한다.<br>
+dynamic import란 모듈을 빌드 타임이 아닌 선언된 런타임에 불러오도록 한다.<br>
+아래는 이번 프로젝트를 진행하면서 Map component가 selector에 의해 지속적으로 변경이 되었어야했는데 ssr로 인해 re-render가 되지않아 그것을 useMemo와 dynamic import의 조합으로 해결했다.
+
+```typescript
+import dynamic from "next/dynamic";
+import { useMemo } from "react";
+
+const Map = useMemo(
+    () => dynamic(() => import("../Map"), { ssr: false }),
+    [location]
+);
+```
