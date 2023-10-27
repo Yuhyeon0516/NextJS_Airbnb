@@ -14,10 +14,14 @@ import toast from "react-hot-toast";
 import Button from "../Button";
 import useLoginModal from "@/app/hooks/useLoginModal";
 import { useRouter } from "next/navigation";
+import useRegisterModal from "@/app/hooks/useRegisterModal";
 
 export default function LoginModal() {
     const router = useRouter();
+
+    const registerModal = useRegisterModal();
     const loginModal = useLoginModal();
+
     const [isLoading, setIsLoading] = useState(false);
 
     const {
@@ -51,6 +55,11 @@ export default function LoginModal() {
             }
         });
     }
+
+    const toggleRegister = useCallback(() => {
+        loginModal.onClose();
+        registerModal.onOpen();
+    }, [loginModal, registerModal]);
 
     const bodyContent = (
         <div className=" flex flex-col gap-4">
@@ -90,6 +99,17 @@ export default function LoginModal() {
                 icon={AiFillGithub}
                 onClick={() => signIn("github")}
             />
+            <div className=" text-neutral-500 text-center mt-4 font-light">
+                <div className=" flex flex-row items-center justify-center gap-2">
+                    <div>First time using Airbnb?</div>
+                    <div
+                        onClick={toggleRegister}
+                        className=" text-neutral-800 cursor-pointer hover:underline"
+                    >
+                        Create an account
+                    </div>
+                </div>
+            </div>
         </div>
     );
 
