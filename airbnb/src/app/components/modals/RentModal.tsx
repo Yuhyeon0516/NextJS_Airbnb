@@ -222,7 +222,7 @@ export default function RentModal() {
                 />
                 <hr />
                 <Input
-                    id="desciption"
+                    id="description"
                     label="Description"
                     disable={isLoading}
                     register={register}
