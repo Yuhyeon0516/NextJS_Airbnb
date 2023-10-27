@@ -30,14 +30,13 @@ export default function useFavorite({ listingId, currentUser }: IUseFavorite) {
 
             try {
                 let request;
-
                 if (hasFavorited) {
                     request = async function () {
-                        axios.delete(`/api/favorites/${listingId}`);
+                        await axios.delete(`/api/favorites/${listingId}`);
                     };
                 } else {
                     request = async function () {
-                        axios.post(`/api/favorites/${listingId}`);
+                        await axios.post(`/api/favorites/${listingId}`);
                     };
                 }
 
