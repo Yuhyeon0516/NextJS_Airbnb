@@ -74,7 +74,7 @@ export default function ListingClient({
                 toast.success("Listing reserved!");
                 setDateRange(initailDateRange);
 
-                router.refresh();
+                router.push("/trips");
             })
             .catch((error: any) => {
                 toast.error(error.message);
